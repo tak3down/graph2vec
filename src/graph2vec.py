@@ -94,8 +94,9 @@ def save_embedding(output_path, model, files, dimensions):
     """
     out = []
     for f in files:
-        identifier = f.split("/")[-1].strip(".json")
-        out.append([int(identifier)] + list(model.docvecs["g_"+identifier]))
+# Change f.split to '\\' since we are in Windows
+        identifier = f.split("\\")[-1].strip(".json")
+        out.append([int(identifier)] + list(model.docvecs[int(identifier)]))
     column_names = ["type"]+["x_"+str(dim) for dim in range(dimensions)]
     out = pd.DataFrame(out, columns=column_names)
     out = out.sort_values(["type"])
