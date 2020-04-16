@@ -110,7 +110,22 @@ def main(args):
     """
     graphs = glob.glob(args.input_path + "*.json")
     print("\nFeature extraction started.\n")
-    document_collections = Parallel(n_jobs=args.workers)(delayed(feature_extractor)(g, args.wl_iterations) for g in tqdm(graphs))
+    for g in enumerate(graphs):
+        document = feature_extractor(g, args.wl_iterations)
+        f = open(".\{}.data".format(str(i)), "wb")
+        pickle.dump(document, f)
+        f.close()
+        # Garbage Collection = 'gc', what library is it in?
+        os.gc()
+        del document
+
+    document_collections = []
+
+    for i in range(len(graphs)):
+        f = open(".\"{}.data".format(str(i)), "rb")
+        document = pickle.load(f)
+        document_collections.append(document)
+    # document_collections = Parallel(n_jobs=args.workers)(delayed(feature_extractor)(g, args.wl_iterations) for g in tqdm(graphs))
     print("\nOptimization started.\n")
 
     model = Doc2Vec(document_collections,
