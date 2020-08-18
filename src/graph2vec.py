@@ -4,6 +4,9 @@ import json
 import glob
 import hashlib
 import pandas as pd
+import time
+import gc
+import pickle
 import networkx as nx
 from tqdm import tqdm
 from joblib import Parallel, delayed
@@ -108,26 +111,33 @@ def main(args):
     Learn the embedding and save it.
     :param args: Object with the arguments.
     """
+    gc.enable()
     graphs = glob.glob(args.input_path + "*.json")
     print("\nFeature extraction started.\n")
-    for g in enumerate(graphs):
-        document = feature_extractor(g, args.wl_iterations)
-        f = open(".\{}.data".format(str(i)), "wb")
-        pickle.dump(document, f)
-        f.close()
-        # Garbage Collection = 'gc', what library is it in?
-        os.gc()
-        del document
+    # print(len(graphs))
+    # for i, g in enumerate(graphs):
+    #     t0 = time.time()
+    #     print(i+37)
+    #     document = feature_extractor(g, args.wl_iterations)
+    #     f = open(".\\{}.data".format(str(i+37)), "wb")
+    #     pickle.dump(document, f)
+    #     f.close()
+    #     # Garbage Collection = 'gc', what library is it in?
+    #     gc.collect()
+    #     del document
+    #     print("Elapsed Time: {}s".format(str(time.time()-t0)))
 
-    document_collections = []
-
-    for i in range(len(graphs)):
-        f = open(".\"{}.data".format(str(i)), "rb")
-        document = pickle.load(f)
-        document_collections.append(document)
-    # document_collections = Parallel(n_jobs=args.workers)(delayed(feature_extractor)(g, args.wl_iterations) for g in tqdm(graphs))
+    # document_collections = []
+    # #
+    # for i in range(len(graphs)):
+    #     f = open(".\\{}.data".format(str(i)), "rb")
+    #     document = pickle.load(f)
+    #     document_collections.append(document)
+    #     print(len(document_collections))
+    #     # Run line 133 instead of lines 117-132 on a beefier machine with more compute cores and larger amount of ram 128 gb+
+    document_collections = Parallel(n_jobs=args.workers)(delayed(feature_extractor)(g, args.wl_iterations) for g in tqdm(graphs))
     print("\nOptimization started.\n")
-
+    
     model = Doc2Vec(document_collections,
                     vector_size=args.dimensions,
                     window=0,
